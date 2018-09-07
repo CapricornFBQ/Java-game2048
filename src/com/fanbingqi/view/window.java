@@ -68,8 +68,8 @@ public class window extends JFrame{
 		private static final int SIZE_TILE = 80; //瓦片的大小
 		
 		private Tile[][] tiles = new Tile[4][4];
-		private boolean isOver;
-		private boolean isMove;
+		private boolean isOver;  //游戏是否结束
+		private boolean isMove;  //瓦片是否移动??????????????疑问
 		//游戏面板构造器
 		public GameBoard() {
 			initGame();
@@ -86,8 +86,25 @@ public class window extends JFrame{
 			case KeyEvent.VK_LEFT:
 				moved = moveLeft();
 				invokeCreateTile();
+				checkGameOver(moved);
+				break;
+			case KeyEvent.VK_RIGHT:
+				moved = moveRight();
+				invokeCreateTile();
+				checkGameOver(moved);
+				break;
+			case KeyEvent.VK_UP:
+				moved = moveUp();
+				invokeCreateTile();
+				checkGameOver(moved);
+				break;
+			case KeyEvent.VK_DOWN:
+				moved = moveDown();
+				invokeCreateTile();
+				checkGameOver(moved);
 				break;
 			}
+			
 			repaint();
 		}
 		//初始化游戏
@@ -161,10 +178,164 @@ public class window extends JFrame{
 		private boolean moveLeft() {
 			isMove = false;
 			for (int i=0;i<4;i++) {
-				for(int j=0;j<4;j++) {
+				for(int j=0;j<4;j++) {//从左向右检测瓦片，当发现符合条件的瓦片则进行左移动
 					int k=j;
+					//当前移动瓦片不能到达边界，不能为空白瓦片，前方瓦片不能是合成瓦片(一个横向上一次只能合并一次)------关于瓦片坐标：横坐标用j计算，纵坐标用i计算
+					while (k>0 && tiles[i][k].value != 0 && !tiles[i][k-1].ismerge) {
+						//如果左边的瓦片为空
+						if(tiles[i][k-1].value == 0) {
+							doMove(tiles[i][k],tiles[i][k-1]); //左右调换
+						}else if(tiles[i][k].value == tiles[i][k-1].value) {
+							doMerge(tiles[i][k],tiles[i][k-1]);
+							break;
+						}else {
+							break;
+						}
+						k--;
+					}
 				}
 			}
+			return isMove;
+		}
+		//向右移动
+		private boolean moveRight() {
+			isMove = false;
+			for(int i=0;i<4;i++) {
+				for(int j=2;j>-1;j--) {
+					int k=j;
+					//当前移动的瓦片不能到达边界，不能为空白瓦片，右侧方不能是合成的瓦片
+					while (k<3&&tiles[i][k].value!=0&&!tiles[i][k+1].ismerge) {
+						if(tiles[i][k+1].value==0) {
+							doMove(tiles[i][k],tiles[i][k+1]);
+						}else if(tiles[i][k+1].value == tiles[i][k].value) { //若果检测到一致，合并
+							doMerge(tiles[i][k],tiles[i][k+1]);
+							break;
+						}else {
+							break;
+						}
+						k++;
+					}
+				}
+			}
+			return isMove;
+		}
+		//向上移动
+		private boolean moveUp() {
+			isMove = false;
+			for (int j=0;j<4;j++) {
+				for(int i=1;i<4;i++) {
+					int k=i;
+					//当前的瓦片不能再最上边一行，不能为空白瓦片，其上方瓦片不能是合成瓦片
+					while (k>0&&tiles[k][j].value!=0&&!tiles[k-1][j].ismerge) {
+						if(tiles[k-1][j].value==0) { //如果这个瓦片上方为空瓦片
+							doMove(tiles[k][j],tiles[k-1][j]);
+						}else if(tiles[k-1][j].value == tiles[k][j].value) {
+							doMerge(tiles[k][j],tiles[k-1][j]);
+							break;
+						}else {
+							break;
+						}
+						k--;
+					}
+				}
+			}
+			return isMove;
+		}
+		//向下移动
+		private boolean moveDown() {
+			isMove = false;
+			for(int j=0;j<4;j++) {
+				for(int i=2;i>-1;i--) {
+					int k=i;
+					//当前瓦片不能再最下方的那一行，不能是空白瓦片，当前瓦片的最下方不能是合成瓦片
+					while(k<3&&tiles[k][j].value!=0&&!tiles[k+1][j].ismerge) {
+						if(tiles[k+1][j].value == 0) {
+							doMove(tiles[k][j],tiles[k+1][j]);
+						}else if(tiles[k+1][j].value == tiles[k][j].value) {
+							doMerge(tiles[k][j],tiles[k+1][j]);
+							break;
+						}else {
+							break;
+						}
+						k++;
+					}
+				}
+			}
+			return isMove;
+		}
+		
+		
+		//瓦片移动
+		private void doMove(Tile src,Tile dst) {
+			//把目的坐标的瓦片换成来源处的瓦片，原瓦片删除
+			dst.swap(src);
+			src.clear();
+			isMove = true;
+		}
+		
+		//瓦片合并
+		private void doMerge(Tile src,Tile dst) {
+			dst.value = dst.value <<1; //右移一位，即数值乘二
+			dst.ismerge = true;
+			src.clear();
+			score += dst.value;
+			isMove = true;
+		}
+		
+		//绘制界面
+		@Override
+		public void paint(Graphics g) {
+			super.paint(g);
+			for (int i=0;i<4;i++) {
+				for(int j=0;j<4;j++) {
+					drawTile(g,i,j);
+				}
+			}
+			if(isOver) {
+				g.setColor(new Color(255,255,255,180));
+				g.fillRect(0,0,getWidth(),getHeight());
+				g.setColor(new Color(0x3d79ca));
+				g.setFont(fonts[0]);
+				FontMetrics fms = getFontMetrics(fonts[0]);
+				String value = "Game Over";
+				g.drawString(value, (getWidth()-fms.stringWidth(value))/2, getHeight()/2);
+			}
+		}
+		
+		//画瓦片
+		private void drawTile(Graphics gg,int i,int j) {
+			Graphics2D g = (Graphics2D) gg;
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+			Tile tile = tiles[i][j];
+			//设置瓦片背景颜色
+			g.setColor(tile.getBackground());
+			//关于瓦片坐标：横坐标用j计算，纵坐标用i计算
+			g.fillRoundRect(GAP_TILE + (GAP_TILE + SIZE_TILE) * j ,
+                    GAP_TILE + (GAP_TILE + SIZE_TILE) * i ,
+                    SIZE_TILE , SIZE_TILE , ARC_TILE, ARC_TILE);
+			//绘制瓦片
+			g.setColor(tile.getForeground());
+			Font font = tile.getTileFont();
+			g.setFont(font);
+			FontMetrics fms = getFontMetrics(font);
+			String value = String.valueOf(tile.value);
+			//关于瓦片中文字的坐标：横坐标用j计算，纵坐标用i计算
+			g.drawString(value, GAP_TILE + (GAP_TILE + SIZE_TILE) * j
+                    + (SIZE_TILE - fms.stringWidth(value)) / 2
+                    , GAP_TILE + (GAP_TILE + SIZE_TILE) * i
+                    + (SIZE_TILE - fms.getAscent() - fms.getDescent()) / 2
+                    + fms.getAscent());
+			
+			tiles[i][j].ismerge = false;
+		}
+		@Override
+		public void keyTyped(KeyEvent e) {
+			
+		}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			
 		}
 	}
 	//瓦片对象
