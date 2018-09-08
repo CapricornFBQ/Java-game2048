@@ -20,13 +20,14 @@ public class window extends JFrame{
 			new Font("Helvetica Neue",Font.BOLD,30),
 			new Font("Helvetica Neue",Font.BOLD,24),
 	};
-//	private GameBoard gameBoard;
+	private GameBoard gameBoard;
 	private JLabel ltitle;
 	private JLabel lsctip;
 	private JLabel lscore;
 	private JLabel loptip;
 	
 	public window() {
+		//在构造器中设置布局
 		this.setLayout(null);
 	}
 	//初始化视图
@@ -56,7 +57,7 @@ public class window extends JFrame{
 		loptip.setForeground(new Color(0x776e65));
 		loptip.setBounds(10,60,390,30);
 		//游戏面板组件
-		GameBoard gameBoard = new GameBoard();
+		gameBoard = new GameBoard();
 		gameBoard.setPreferredSize(new Dimension(400,400));
 		gameBoard.setBackground(new Color(0xbbada0));
 		gameBoard.setBounds(0,100,400,400);
@@ -71,17 +72,19 @@ public class window extends JFrame{
 	}
 	//游戏面板
 	class GameBoard extends JPanel implements KeyListener {
+		//设置界面常量
 		private static final int GAP_TILE = 16; //瓦片的间隙
 		private static final int ARC_TILE = 16; //瓦片圆角弧度
 		private static final int SIZE_TILE = 80; //瓦片的大小
-		
+		//二维数组存储界面的瓦片信息
 		private Tile[][] tiles = new Tile[4][4];
 		private boolean isOver;  //游戏是否结束
-		private boolean isMove;  //瓦片是否移动??????????????疑问
+		private boolean isMove;  //瓦片是否移动  如果没有移动或者没有合并，则不能生成新的瓦片
 		//游戏面板构造器
 		public GameBoard() {
 			initGame();
-			addKeyListener(this);
+			//添加事件监听
+			this.addKeyListener(this);
 		}
 		//键盘按下事件
 		@Override
@@ -126,12 +129,13 @@ public class window extends JFrame{
 			//初始化时生成两个瓦片
 			createTile();
 			createTile();
-			
-			isMove = false;
+
+			isMove = false; 
 			isOver = false;
 		}
-		//调用生成瓦片的方法，除了初始化之后，其他时候都是生成一个瓦片
+		//调用生成瓦片的方法，初始化之后，每次只生成一个瓦片
 		private void invokeCreateTile() {
+			//如果瓦片已经移动，则创建一个新的瓦片
 			if(isMove) {
 				createTile();
 				isMove = false;
@@ -273,7 +277,7 @@ public class window extends JFrame{
 		}
 		
 		
-		//瓦片移动
+		//瓦片移动，同时把isMove的状态设置为true
 		private void doMove(Tile src,Tile dst) {
 			//把目的坐标的瓦片换成来源处的瓦片，原瓦片删除
 			dst.swap(src);
@@ -281,7 +285,7 @@ public class window extends JFrame{
 			isMove = true;
 		}
 		
-		//瓦片合并
+		//瓦片合并，同时把isMove的状态设置为true
 		private void doMerge(Tile src,Tile dst) {
 			dst.value = dst.value <<1; //右移一位，即数值乘二
 			dst.ismerge = true;
@@ -417,11 +421,7 @@ public class window extends JFrame{
         	int index = value < 100?1:value<1000?2:value<10000?3:4;
         	return fonts[index];
         }
-        
 	}
-	
-
-	
 }
 
 
