@@ -35,7 +35,7 @@ public class window extends JFrame{
 		ltitle = new JLabel("2048",JLabel.CENTER);
 		ltitle.setFont(new Font("",Font.BOLD,50));
 		ltitle.setForeground(new Color(0x776e65));
-		ltitle.setBounds(0,0,130,60);
+		ltitle.setBounds(0,0,140,60);
 		//分数提示区
 		lsctip = new JLabel("SCORE",JLabel.CENTER);
 		lsctip.setFont(new Font("",Font.BOLD,16));
@@ -55,11 +55,19 @@ public class window extends JFrame{
 		loptip.setFont(new Font("Helvetica Neue",Font.ITALIC,12));
 		loptip.setForeground(new Color(0x776e65));
 		loptip.setBounds(10,60,390,30);
+		//游戏面板组件
+		GameBoard gameBoard = new GameBoard();
+		gameBoard.setPreferredSize(new Dimension(400,400));
+		gameBoard.setBackground(new Color(0xbbada0));
+		gameBoard.setBounds(0,100,400,400);
+		gameBoard.setFocusable(true);
 		
+		//把组件加入窗口
 		this.add(ltitle);
 		this.add(lsctip);
 		this.add(lscore);
 		this.add(loptip);
+		this.add(gameBoard);
 	}
 	//游戏面板
 	class GameBoard extends JPanel implements KeyListener {
